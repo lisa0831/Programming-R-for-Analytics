@@ -1,0 +1,387 @@
+---
+title: "Final Project"
+author: "Sha Li"
+date: 'December 13, 2016'
+output: 
+  html_document:
+    theme: paper
+    highlight: tango
+    toc: true
+    toc_depth: 3
+    fig_width: 5
+    fig_height: 5
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+``` 
+
+### Problem Statement
+The income difference between male and female has long been a heated topic for social discussion.The target of this report is to study whether gender has a significant impact on income? Moreover, does any other factor influence the income gap between male and female? This report will mainly focus on the impact of educational and residencial factors. The dataset used is the NLSY79 (National Longitudinal Survey of Youth, 1979 cohort) data set. The NLSY79 data set contains survey responses on thousands of individuals who have been surveyed every one or two years starting in 1979.
+
+###1 Data Summary
+
+#### 1.1 Transforming Data
+Let's begin by loading the packages, inputing the data, and chooseing the variables.In this report, the following variables will be used for analysis:
+(1) Dependent Variable: T3977400 Income
+(2) Independent Variable: 
+    a. R0214800 Gender 
+    b. Educational factors: R0023500 Highest grade expect to complete(1979); R0171800 Expect in school or not in 5yrs; R34015.01 Highest grade completed(May.1.1990);T4113000 HIghest grade completed(May.1.2012)
+    c. Residential factors: R0000700 Born in US or not; R0001010 South-nonsouth place of birth in US; R0001610 South-nonsouth place of birth in US at age 14; R0001800 Area of residence at age 14 urban/rural;T4112700 Region of Current Residence; T4114600 Current Residence urban/rural
+    
+```{r}
+# load the packages
+library(MASS)
+library(plyr)
+library(ggplot2)
+library(knitr) 
+
+# Input Data
+nlsy <- read.csv("nlsy79_income.csv", header=TRUE)
+# Pick Variables 
+var_list<-c("T3977400", "R0214800", "R0000700", "R0001010", "R0001610", "R0001800", "R0023500", "R0171800","R3401501", "T4112700", "T4113000", "T4114600")
+nlsy <- nlsy[var_list]
+names(nlsy) <- mapvalues(names(nlsy), 
+                                c("T3977400", "R0214800", "R0000700", "R0001010", "R0001610", "R0001800", "R0023500", "R0171800","R3401501", "T4112700", "T4113000", "T4114600"),
+                                c("Income", "Gender", "COB", "POB_South", "RES_South14", "RES_Urban14", "High_Grade79", "Edu_Exp5yr", "High_Grade90", "Region", "High_Grade12", "Urban"))
+```
+
+To keep the consistence of the analysis and to achieve more stable results, I dropped all the zero and negative values in income, and set all the negative values in other variables as unknown.
+
+```{r}
+nlsy.new <- nlsy[which(nlsy$Income > 0), ]
+nlsy.new[nlsy.new < 0] <- "Unknown"
+
+nlsy.new <- transform(nlsy.new, 
+Gender = as.factor(mapvalues(Gender, c(1, 2), c("Male", "Female"))),
+COB = as.factor(mapvalues(COB, c(1,2), c("In the US", "In Other Country"))),
+POB_South = as.factor(mapvalues(POB_South, c(0,1), c("NonSouth", "South"))),
+RES_South14 = as.factor(mapvalues(RES_South14, c(1,0), c("South", "NonSouth"))),
+RES_Urban14 = as.factor(mapvalues(RES_Urban14, 1:3, c("In town or city", "In country- not farm", "On farm or ranch"))),
+High_Grade79 = as.factor(mapvalues(High_Grade79, 1:18, c("1st Grade", "2nd Grade", "3rd Grade", "4th Grade", "5th Grade", "6th Grade", "7th Grade", "8th Grade", "9th Grade", "10th Grade", "11th Grade", "12th Grade", "1st yr College", "2nd yr College", "3rd yr College", "4th yr College", "5th yr College", "6th+ yr College"))),
+Edu_Exp5yr = as.factor(mapvalues(Edu_Exp5yr, c(1,0), c("In school", "Not in school"))),
+High_Grade90 = as.factor(mapvalues(High_Grade90, 0:20, c("None", "1st Grade", "2nd Grade", "3rd Grade", "4th Grade", "5th Grade", "6th Grade", "7th Grade", "8th Grade", "9th Grade", "10th Grade", "11th Grade", "12th Grade", "1st yr College", "2nd yr College", "3rd yr College", "4th yr College", "5th yr College", "6th yr College", "7th yr College", "8th+ yr College"))),
+Region = as.factor(mapvalues(Region, 1:4, c("Northeast", "North Central", "South", "West"))),
+High_Grade12 = as.factor(mapvalues(High_Grade12, 0:20, c("None", "1st Grade", "2nd Grade", "3rd Grade", "4th Grade", "5th Grade", "6th Grade", "7th Grade", "8th Grade", "9th Grade", "10th Grade", "11th Grade", "12th Grade", "1st yr College", "2nd yr College", "3rd yr College", "4th yr College", "5th yr College", "6th yr College", "7th yr College", "8th+ yr College" ))),
+Urban = as.factor(mapvalues(Urban, c(0,1,2), c("Rural", "Urban", "Unknown")))
+)
+
+nlsy <- nlsy.new
+
+summary(nlsy)
+
+```
+
+We can see from the summary that after drop the zero and negative values in income, we have very few respondents born in other country, so we will drop the COB variable. 
+
+```{r}
+nlsy$COB <- NULL
+summary(nlsy)
+```
+#### 1.2 Gender and Income 
+
+After cleaning the data, we can take a look at the basic gender and income statistics of the rest survey respondents. 
+
+##### 1.2.1 Gender
+
+Among the `r nrow(nlsy)` survey respondents, there are `r sum(nlsy[["Gender"]] == "Male")`men, and `r sum(nlsy[["Gender"]] == "Female")` women. So `r round(sum(nlsy[["Gender"]] == "Male") / nrow(nlsy) * 100, 2)`% of all the respondents are males, and `r round(sum(nlsy[["Gender"]] == "Female") / nrow(nlsy) * 100, 2)`% are females.
+
+##### 1.2.2 Income
+
+Income distribution is demonstrated in the following boxplot. 
+
+```{r}
+with(nlsy, boxplot(Income, main = "Income Distribution", ylab = "Income($)", col = "steelblue")) 
+```
+
+From the Income Distribution Boxplot, we can see that there is an obious outlier skewed the plot. We know it's the 2% earners whose incomes have been topcoded. To overview a better income distribution among the majority of people, I drop the topcoded incomes. 
+
+```{r}
+nlsy_new <- subset(nlsy, Income < max(Income))
+with(nlsy_new, boxplot(Income, main = "Income Distribution (after drop top 2%)", ylab = "Income($)", col = "steelblue")) 
+```
+
+From the new boxplots incurred after drop the top 2% earners, we can see that 3/4 of the respondents own an income from 0 to slightly over $50,000. There are still some outliers have higher incomes over $150,000, the plot is less skewed than prior dropping the top 2%. 
+
+##### 1.2.3 Income Distribution by Gender
+
+Next, let's take a look at the breakdown of income by gender. 
+
+```{r}
+p.income <- ggplot(data = nlsy_new, aes(x = Income, fill= Gender)) + geom_histogram(binwidth = 10000) + facet_grid(Gender~.) 
+require(scales)
+p.income + scale_x_continuous(labels = comma) + ylab("Number of People") + xlab("Income Last Year (Dollars)") + ggtitle("Income Distribution by Gender")
+
+Gen_Income.tbl <- ddply(nlsy_new, ~ Gender, summarize, 
+                        Mean.income = mean(Income),
+                        Median.income = median(Income), 
+                        Sd.income = sd(Income),
+                        Min.income = min(Income),
+                        Max.income = max(Income))
+kable(Gen_Income.tbl, format = "markdown")
+```
+
+The plot and table above have demostrated the income distributions of males and females respectively. The average income for females is $39460.17, with a standard deviation of $29062.05. The average income for males is $54190.78 with a standard deviation of $35625.24.
+
+
+####1.3 Education
+
+After developed an understanding of the key variables gender and income, we now move on to educational related variables. There are four variables in the dataset jointly picture the education background and expectation of the survey respondents.
+
+##### 1.3.1 Average Income across education level in different years
+
+Let's start by taking a look at the respondents' expected degree in 1979, the degree completed in 1990, and 2012. The table is too long, so we just show the 10 highest average income. 
+
+```{r}
+Edu_Income.tbl <- aggregate(Income ~ High_Grade79 + High_Grade90 + High_Grade12, data=nlsy_new, FUN = function(x) round(mean(x), 2))
+Edu_Income.tbl <- Edu_Income.tbl[order(Edu_Income.tbl[, "Income"], decreasing = TRUE),]
+Edu_Income.tbl_top5 <- head(Edu_Income.tbl, n=10)
+kable(Edu_Income.tbl_top5, format = "markdown")
+```
+
+From the table we can see that the respondents with top 9 highest average income all have completed higher education in 2012 than they have expected they will complete in 1979. When compare the highest grade completed in 1990 and 2012, we can see some respondents are still in school in 1990. The 7th row has a higher grade completed in 1990(8th+yr college) than in 2012(7th yr college) which might worth further analysis. 
+
+##### 1.3.2 Grade completion vs Education expectation
+
+The next thing I am very interested to know when I first saw the data is that whether the respondents' expectations for their education are accurate. Same as the table above, list the respondents with 10 highest average income. We can see that no matter the respondents expect themselves in or not in school in 5 years, their completed grades in 1990 are higher than their expected complete grade in 1979. This might becaue the average education years in the society has increased during the years. (Notice that the options in the questions also have changed, with a highest grade of 6+ yrs college in 1979 survey raised to 8th+ yr in 1990).
+The 6 respondens on 6th row who have expected themselves to be 3rd yr college, but they ends up to be complete with 10th grade by 1990. I am not quite sure how to explain this.
+
+```{r}
+Edu2_Income.tbl <- aggregate(Income ~ High_Grade79 + Edu_Exp5yr + High_Grade90, data=nlsy_new, FUN = function(x) round(mean(x), 2))
+Edu2_Income.tbl <- Edu2_Income.tbl[order(Edu2_Income.tbl[, "Income"], decreasing = TRUE),]
+Edu2_Income.tbl_top5 <- head(Edu2_Income.tbl, n=10)
+kable(Edu2_Income.tbl_top5, format = "markdown")
+```
+
+##### 1.3.3 Income by Highest Degree Completed 
+
+Glance at the tables above, we can see that income is most strongly related to the highest degree achieved in 2012. So we make some further analysis on the correlation between respondents' income and their highest grade completed in 2012 to see whether our glance is right. 
+
+```{r}
+Edu12_Income.tbl <- aggregate(Income ~ High_Grade12, data=nlsy_new, FUN = function(x) round(mean(x), 2))
+Edu12_Income.tbl <- Edu12_Income.tbl[order(Edu12_Income.tbl[, "Income"], decreasing = TRUE),]
+kable(Edu12_Income.tbl, format = "markdown")
+
+Edu_gen_income <- aggregate(Income ~ Gender + High_Grade12, data=nlsy_new, FUN = function(x) round(mean(x), 2))
+#Barplot 
+plot.colors <- c("#CC79A7", "#56B4E9")
+Edu_gen_income.plot <- ggplot(data = nlsy_new, aes(x = High_Grade12, y = Income, fill = Gender))
+Edu_gen_income.plot + geom_bar(stat = "identity", position = "dodge") + ylab("Average Income") + xlab("Highest Grade Completed") + guides(fill = guide_legend(title = "Gender")) + ggtitle("The Average Income across Education Levels and Gender") + scale_fill_manual(values = plot.colors) + theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+
+summary(aov(Income ~ High_Grade12, data = nlsy_new))
+```
+
+We can see the P value is <0.001, which means the variable highest grade completed in 2012 is statistically significant. 
+
+##### 1.3.4 Gender Income Gap across Education levels
+
+```{r}
+nlsy_new<-nlsy_new[which(nlsy_new$High_Grade12 != "5th Grade"),]
+
+betterErrorBars <- function(x, groups, k = 5, flip.sign = TRUE) {
+  if(min(table(groups)) >= k) {
+    ci <- t.test(x ~ groups)$conf.int
+    if(flip.sign) {
+      out <- c(lower = -ci[2], upper = -ci[1])
+    } else{
+      out <- c(lower = ci[1], upper = ci[2])
+    }
+  } else {
+    means <- tapply(x, groups, mean)
+    out <- c(lower = means[1] - means[2], upper = means[1] - means[2])
+    if(flip.sign) {
+      out <- -out
+    }
+  }
+  out
+}
+
+betterSignificanceTest <- function(x, groups, k = 5) {
+  # If sample size sufficiently large, return t-test pvalue
+  # Otherwise, return 1 
+  if(min(table(groups)) >= k) {
+    t.test(x ~ groups)$p.value 
+  } else {
+    1
+  }
+}
+
+Gap_gen_edu <- ddply(nlsy_new, ~ High_Grade12, summarize, 
+                       Income.gap = mean(Income[Gender == "Male"], na.rm = TRUE) - mean(Income[Gender == "Female"], na.rm = TRUE),
+                       upper = betterErrorBars(Income, Gender)[2],
+                       lower = betterErrorBars(Income, Gender)[1],
+                       is.significant = as.numeric(betterSignificanceTest(Income, Gender) < 0.05))
+
+ggplot(Gap_gen_edu, aes(x = High_Grade12, y = Income.gap,
+                            fill = is.significant)) +
+  geom_bar(stat = "identity") +
+  xlab("Highest Grade Achieved") + 
+  ylab("Income gap($)") +
+  ggtitle("Gender Income Gap by Education Level") + 
+  guides(fill = FALSE) +
+  geom_errorbar(aes(ymax = upper, ymin = lower), width = 0.1, size = 1) +
+  theme(text = element_text(size=12))+
+  theme(axis.text.x  = element_text(angle=30, vjust=0.5))
+```
+
+From the bar chart, we can see that males income are higher than females income except the respondents whose highest grade completed is 3rd year college. 
+
+
+
+#### 1.4 Residence
+
+Apart from education, residence is also an important factor influencing the income. 
+
+##### 1.4.1 Place of Birth
+
+```{r}
+
+# Income by Place of Birth Table
+POB_Income.tbl <- aggregate(Income ~ Gender + POB_South, data=nlsy, FUN = function(x) round(mean(x), 2))
+POB_Income.tbl <- POB_Income.tbl[order(POB_Income.tbl[, "Income"], decreasing = TRUE),]
+kable(POB_Income.tbl, format = "markdown")
+summary(aov(Income ~ POB_South, data = nlsy_new))
+```
+
+We can see that regardless of place of birth, males' income are higher than females. Meanwhile, in the same gender, the respondents who born in nonsouth area have higher income than those who born in South. 
+
+##### 1.4.2 Urban vs Rural
+```{r}
+
+Urban_Income.tbl <- aggregate(Income ~ Gender  + Urban, data=nlsy, FUN = function(x) round(mean(x), 2))
+Urban_Income.tbl <- Urban_Income.tbl[order(Urban_Income.tbl[, "Income"], decreasing = TRUE),]
+kable(Urban_Income.tbl, format = "markdown")
+
+```
+
+We can see from the table that males' income are higher than females' in general. And within the gender group, those respondents who live in urban area tend to have higher income than those in rural area. 
+
+##### 1.4.3 Current Residence
+
+```{r}
+CurRes_Income.tbl <- aggregate(Income ~ Gender + Region, data=nlsy, FUN = function(x) round(mean(x), 2))
+CurRes_Income.tbl <- CurRes_Income.tbl[order(CurRes_Income.tbl[, "Income"], decreasing = TRUE),]
+kable(CurRes_Income.tbl, format = "markdown")
+```
+
+For males, the income sequence from high to low is northeast > north centeral > west > south.
+For females, the income sequence from high to low is northeast > west > south > north central.
+
+### 2 Methodology
+
+#### 2.1 Missing Values
+
+My main focus of this study is to see the effect of education level and area of residence on respondents' income. The reasons why the value is missing in a certain variable might not be relevant to this study. So I didn't take the different kinds of skip into consideration. To run a better regression and achieve more constant and stable result, I dropped zero and negative values of income at the very beginning, and changed negative values in other variables as "unknown".
+
+
+#### 2.2 Topcoded Values
+
+I dropped topcoded values at the beginning right after plotting the income distribution. Now I will run two linear regression model to show the difference before and after drop the topcoded values. 
+
+```{r}
+Income.lm1 <- lm(Income ~ Gender + POB_South + Urban, data = nlsy)
+qqnorm(Income.lm1$residuals)
+```
+
+After drop the topcoded values.
+
+```{r}
+Income.lm2 <- lm(Income ~ Gender + POB_South + Urban, data = nlsy_new)
+qqnorm(Income.lm2$residuals)
+```
+
+Comparing the two normal Q-Q plots, we can see that model has been improved after drop the top 2% highest income earners.
+
+#### 2.3 Consideration
+
+The variable Highest Grade achieved in 2012 has too many levels which will be too complicated to be an interactive factor when running a regression. So I categorize the grades into primary school, middle school and college.
+
+```{r}
+nlsy_new$grade <- ifelse(nlsy_new$High_Grade12 %in% c("1st Grade", "2nd Grade", "3rd Grade", "4th Grade", "5th Grade", "6th Grade"),"Primary",
+                       ifelse(nlsy_new$High_Grade12 %in% c("7th Grade", "8th Grade", "9th Grade", "10th Grade", "11th Grade", "12th Grade"),"Secondary","College"))
+```
+
+### 3 Findings
+
+#### 3.1 Regression Output
+
+The final regression model runs with the following formula:
+
+##### Income ~ Gender + POB_South + Region + Urban + Gender*POB_South + Gender*grade
+
+```{r}
+final.lm <- lm(Income ~ Gender + Region + Urban + Gender*POB_South + Gender*grade, data = nlsy_new)
+summary(final.lm)
+```
+
+#### 3.2 Coefficients Interpretation
+
+##### Gender
+
+Our regression outcome shows that gender is a statistically significant predictor of income since its p-value is <0.001. The coefficient is 22251, which means holding other factors constant, males earn $22251 more than females. 
+
+##### Current Residence
+
+Current residence don't have a very strong impact on income. 
+
+With all other factors being constant:
+
+Respondents live in Northeast earn $4807.3 more than respondents live in North Central. 
+
+Respondents live in South earn $3800.3 more than respondents live in North Central.
+
+Respondents live in West earn $2041.6 more than respondents live in North Central.
+
+Respondents live in urban earn $833.7 more than respondents live in rural. 
+
+##### Plce of Birth 
+
+Whether a respondent is born in South US has significant impact on the income. 
+
+With all other factors being constant: 
+
+Respondents born in South earn $5437.7 less than respondents born in Nonsouth. 
+
+On average among male respondents, those born in South earn $5171 less than those born in Nonsouth. 
+
+##### Highest Grade Achieved 
+
+Grade is a statistically significant predictor of income. 
+
+With all other factors  being constant:
+
+Respondents with a highest degree in primary school earn $31271.4 less than respondents with a highest degree in college.
+
+Respondents with a highest degress in secondary school earn $18098 less than respondents with a highest degree in college. 
+
+On average among male respondents, those with a highest degree in primary school earn $8982.3 less than those with a highest degree in college.
+
+On average among male respondents, those with a highest degree in secondary school earn $6145.2 less than those with a highest degree in college.
+
+#### 3.3 Diagnostic Plots
+```{r}
+plot(final.lm)
+```
+
+Residual vs Fitted: In this plot, the red line is not perfectly flat, which means the variance is not perfectly constant. 
+
+Normal Q-Q:  In this QQ Plot, the residuals depart significantly from the diagonal line in upper tail of the distribution. This indicates that the residuals are not normally distributed. we see that the tails are observed to be 'heavier' (have larger values) than what we would expect under the standard modeling assumptions. This is indicated by the points forming a "steeper" line than the diagonal.
+
+Scale-Location: In this plot, the residuals spread wider in the beginning, the red smooth line is not horizontal and shows an angle.
+
+Residuals vs Leverage:  All cases are well inside of the Cook's distance lines.
+
+#### 4 Discussion
+
+In this report, we have discussed whether there is a inome gap between males and females, and what other factors have impact on the gender income gap. We tried variables related to education and residence, and narrowed down the predictors included in the final regression model to the following:Gender, place of birth south or nonsouth in the US, currently live in urban or rurual, currently live in which part of the US, and the highest grade completed in 2012. 
+
+From the analysis, we can draw a conlcusion that there certainly is a income gap between males and females. In most cases, respondents have higher degrees achieved tend to have higher incomes. People born in nonsouth in the US, and currently live in urban and northeast in the US also tend to have higher income. 
+
+From the diagnostic plots, we can see some problems in the final model.The slightly nonconstant variance, and nonnormal distribution might reduce the confidence of the model. For people who have higher income, the predicition might be slightly lower than their actual income. The exclusion of 2% topcoded data is another limitation of the model.
+
+I wasn't able to find a way to check the longitudinal effect of education completed and expectation. I think it might be interesting to see whether the respondents educational expectancy allign with the grade they actually completed.
+
+All in all, there isn't any obvious counter intuitive result from the study.So I think my analysis makes sense in some extent. 
+
+
