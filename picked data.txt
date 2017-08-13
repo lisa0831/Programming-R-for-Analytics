@@ -1,0 +1,240 @@
+R02148.00  1979    SEX OF R                                                                    SAMPLE_SEX            
+T39774.00  2012    TOTAL INCOME FROM WAGES AND SALARY IN PAST CALENDAR YEAR  (TRUNC)           Q13-5_TRUNC   
+R00007.00  1979    COUNTRY OF BIRTH                                                            FAM-2A                 
+R00010.10  1979    SOUTH-NONSOUTH PLACE OF BIRTH IN U.S.                                       FAM-POB    
+R00016.10  1979    SOUTH-NONSOUTH RESIDENCE IN U.S. AT AGE 14                                  FAM-RES                
+R00018.00  1979    AREA OF RESIDENCE AT AGE 14 URBAN/RURAL?                                    FAM-6       
+R00235.00  1979    HIGHEST GRADE COMPLETED R EXPECTS                                           SCHOOL-31                          
+R01718.00  1979    EDUCATIONAL EXPECTATIONS - IN SCHOOL OR NOT IN 5 YEARS                      EXP-9           
+R34015.01  1990    HIGHEST GRADE COMPLETED AS OF MAY 1 SURVEY YEAR (REVISED)                   HGCREV90   
+T41127.00  2012    REGION OF CURRENT RESIDENCE                                                 REGION                 
+T41130.00  2012    HIGHEST GRADE COMPLETED AS OF MAY 1 SURVEY YEAR                             HGC                    
+T41146.00  2012    IS R'S CURRENT RESIDENCE URBAN/RURAL?                                       URBAN-RURAL         
+
+
+
+
+
+income.data$Gender <- as.factor(income.data$Gender)
+income.data$COB <- as.factor(income.data$COB)
+income.data$POB_South <- as.factor(income.data$POB_South)
+income.data$RES_South14 <- as.factor(income.data$RES_South14)
+income.data$RES_Urban14 <- as.factor(income.data$RES_Urban14)
+income.data$High_Grade79 <- as.factor(income.data$High_Grade79)
+income.data$Edu_Exp5yr <- as.factor(income.data$Edu_Exp5yr)
+income.data$High_Grade90 <- as.factor(income.data$High_Grade90)
+income.data$Region <- as.factor(income.data$Region)
+income.data$High_Grade12 <- as.factor(income.data$High_Grade12)
+income.data$Urban <- as.factor(income.data$Urban)
+
+
+http://www.cyclismo.org/tutorial/R/confidence.html
+
+
+
+Edu_Income.tbl_bottom5 <- tail(Edu_Income.tbl, n=10)
+kable(Edu_Income.tbl_bottom5, format = "markdown")
+
+
+
+
+betterErrorBars <- function(Income, Gender, k = 5, flip.sign = TRUE) {
+  if(min(table(Gender)) >= k) {
+    ci <- t.test(Income ~ Gender)$conf.int
+    if(flip.sign) {
+      out <- c(lower = -ci[2], upper = -ci[1])
+    } else{
+      out <- c(lower = ci[1], upper = ci[2])
+    }
+  } else {
+    means <- tapply(Income, Gender, mean)
+    out <- c(lower = means[1] - means[2], upper = means[1] - means[2])
+    if(flip.sign) {
+      out <- -out
+    }
+  }
+  out
+}
+
+betterSignificanceTest <- function(Income, Gender, k = 5) {
+  if(min(table(Gender)) >= k) {
+    t.test(x ~ Gender)$p.value 
+  } else {
+    1
+  }
+}
+
+
+
+
+
+```{r}
+#1 Table for education and income gap
+Gap_gen_edu <- ddply(nlsy_new, ~ High_Grade12, summarize, income.gap = mean(Income[Gender == "Male"], na.rm = TRUE) - mean(Income[Gender == "Female"], na.rm = TRUE),
+                  upper = -t.test(Income ~ Gender)$conf.int[1],
+                  lower = -t.test(Income ~ Gender)$conf.int[2],
+                  significance = ifelse(test = t.test(Income ~ Gender)$p.value >= 0.05, yes = 0, no = 1))
+Gap_gen_edu <- Gap_gen_edu[order(Gap_gen_edu[, "income.gap"], decreasing = TRUE),]
+kable(Gap_gen_edu, format = "markdown")
+
+#2 Bar plot for income gap among education levels
+Gap_gen_edu <- transform(Gap_gen_edu,
+                          High_Grade12 = reorder(High_Grade12, income.gap))
+
+qplot(data = Gap_gen_edu, x = High_Grade12, y = income.gap, fill = significance,
+      xlab = "Race",
+      ylab = "Income Gap ($)",
+      geom = "bar", stat = "identity",
+      main = "Income gap between men and women, by education") +
+  guides(fill = FALSE) +
+  geom_errorbar(aes(ymax = upper, ymin = lower), width = 0.1, size = 1) +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
+
+#1 Table for education and income gap
+significance = ifelse(test = t.test(Income ~ Gender, nlsy_new)$p.value >= 0.05, yes = 0, no = 1)
+upper = -t.test(Income ~ Gender, nlsy_new)$conf.int[1]
+lower = -t.test(Income ~ Gender, nlsy_new)$conf.int[2]
+income.gap = mean(nlsy_new[nlsy_new["Gender"]=="Male","Income"], na.rm = TRUE) - mean(nlsy_new[nlsy_new["Gender"]=="Female","Income"], na.rm = TRUE)
+Gap_gen_edu <- ddply(nlsy_new, ~ High_Grade12, summarize,income.gap = mean(nlsy_new[nlsy_new["Gender"]=="Male","Income"], na.rm = TRUE) - mean(nlsy_new[nlsy_new["Gender"]=="Female","Income"], na.rm = TRUE),
+                  upper = -t.test(Income ~ Gender, nlsy_new)$conf.int[1],
+                  lower = -t.test(Income ~ Gender, nlsy_new)$conf.int[2],
+                   significance)
+Gap_gen_edu <- Gap_gen_edu[order(Gap_gen_edu[, "income.gap"], decreasing = TRUE),]
+kable(Gap_gen_edu, format = "markdown")
+
+#2 Bar plot for income gap among education levels
+Gap_gen_edu <- transform(Gap_gen_edu,
+                          High_Grade12 = reorder(High_Grade12, income.gap))
+
+qplot(data = Gap_gen_edu, x = High_Grade12, y = income.gap, fill = significance,
+      xlab = "Race",
+      ylab = "Income Gap ($)",` 
+      geom = "bar", stat = "identity",
+      main = "Income gap between men and women, by education") +
+  guides(fill = FALSE) +
+  geom_errorbar(aes(ymax = upper, ymin = lower), width = 0.1, size = 1) +
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
+
+```{r}
+nlsy_new<-nlsy_new[which(nlsy_new$High_Grade12 != "5th Grade"),]
+
+betterErrorBars <- function(x, groups, k = 5, flip.sign = TRUE) {
+  if(min(table(groups)) >= k) {
+    ci <- t.test(x ~ groups)$conf.int
+    if(flip.sign) {
+      out <- c(lower = -ci[2], upper = -ci[1])
+    } else{
+      out <- c(lower = ci[1], upper = ci[2])
+    }
+  } else {
+    means <- tapply(x, groups, mean)
+    out <- c(lower = means[1] - means[2], upper = means[1] - means[2])
+    if(flip.sign) {
+      out <- -out
+    }
+  }
+  out
+}
+
+# This function is not required for full credit.  It is provided
+# for use on the final project.
+betterSignificanceTest <- function(x, groups, k = 5) {
+  # If sample size sufficiently large, return t-test pvalue
+  # Otherwise, return 1 
+  if(min(table(groups)) >= k) {
+    t.test(x ~ groups)$p.value 
+  } else {
+    1
+  }
+}
+
+Gap_gen_edu <- ddply(nlsy_new, ~ High_Grade12, summarize, 
+                       Income.gap = mean(Income[Gender == "Male"], na.rm = TRUE) - mean(Income[Gender == "Female"], na.rm = TRUE),
+                       upper = betterErrorBars(Income, Gender)[2],
+                       lower = betterErrorBars(Income, Gender)[1],
+                       is.significant = as.numeric(betterSignificanceTest(Income, Gender) < 0.05))
+```
+
+```{r}
+#1 Table for education and income gap
+Gap_gen_edu <- ddply(nlsy_new, ~ High_Grade12, summarize, income.gap = mean(Income[Gender == "Male"], na.rm = TRUE) - mean(Income[Gender == "Female"], na.rm = TRUE),
+                  upper = -t.test(Income ~ Gender)$conf.int[1],
+                  lower = -t.test(Income ~ Gender)$conf.int[2],
+                  significance = ifelse(test = t.test(Income ~ Gender)$p.value >= 0.05, yes = 0, no = 1))
+Gap_gen_edu <- Gap_gen_edu[order(Gap_gen_edu[, "income.gap"], decreasing = TRUE),]
+kable(Gap_gen_edu, format = "markdown")
+
+#2 Bar plot for income gap among education levels
+Gap_gen_edu <- transform(Gap_gen_edu,
+                          High_Grade12 = reorder(High_Grade12, income.gap))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Coefficients: (1 not defined because of singularities)
+                                       Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                              7295.0     4363.9   1.672 0.094646 .  
+GenderMale                              12739.3     6038.4   2.110 0.034927 *  
+High_Grade1211th Grade                   4590.3     5915.3   0.776 0.437780    
+High_Grade1212th Grade                  14835.3     4293.0   3.456 0.000553 ***
+High_Grade121st yr College              19846.6     4572.3   4.341 1.45e-05 ***
+High_Grade122nd yr College              23053.2     4515.6   5.105 3.41e-07 ***
+High_Grade123rd yr College              22695.7     4756.3   4.772 1.87e-06 ***
+High_Grade124th yr College              36653.5     4503.5   8.139 4.87e-16 ***
+High_Grade125th Grade                  -11013.8    31153.7  -0.354 0.723704    
+High_Grade125th yr College              39341.7     5191.2   7.579 4.07e-14 ***
+High_Grade126th Grade                   -3750.8    22240.7  -0.169 0.866081    
+High_Grade126th yr College              47075.0     4897.9   9.611  < 2e-16 ***
+High_Grade127th Grade                    -900.3     9022.6  -0.100 0.920521    
+High_Grade127th yr College              55965.3     5817.0   9.621  < 2e-16 ***
+High_Grade128th Grade                   -2930.4     7816.5  -0.375 0.707750    
+High_Grade128th+ yr College             62897.4     6002.3  10.479  < 2e-16 ***
+High_Grade129th Grade                    2139.8     6159.5   0.347 0.728302    
+POB_SouthSouth                          -3946.6     1160.5  -3.401 0.000677 ***
+UrbanUrban                                804.9     1375.8   0.585 0.558550    
+GenderMale:High_Grade1211th Grade       -1163.6     7854.9  -0.148 0.882243    
+GenderMale:High_Grade1212th Grade        3350.9     5900.6   0.568 0.570132    
+GenderMale:High_Grade121st yr College    8012.0     6400.6   1.252 0.210709    
+GenderMale:High_Grade122nd yr College    7025.0     6312.5   1.113 0.265808    
+GenderMale:High_Grade123rd yr College   17673.2     6873.0   2.571 0.010155 *  
+GenderMale:High_Grade124th yr College   16084.3     6246.5   2.575 0.010052 *  
+GenderMale:High_Grade125th Grade             NA         NA      NA       NA    
+GenderMale:High_Grade125th yr College   20034.8     7509.4   2.668 0.007653 ** 
+GenderMale:High_Grade126th Grade        -6908.8    31422.4  -0.220 0.825981    
+GenderMale:High_Grade126th yr College   15004.1     7211.8   2.080 0.037526 *  
+GenderMale:High_Grade127th Grade        -7661.3    13289.3  -0.577 0.564299    
+GenderMale:High_Grade127th yr College   -7349.2     9216.2  -0.797 0.425241    
+GenderMale:High_Grade128th Grade         5328.7    10137.1   0.526 0.599146    
+GenderMale:High_Grade128th+ yr College  -2355.1     8508.4  -0.277 0.781949    
+GenderMale:High_Grade129th Grade         -399.0     8268.1  -0.048 0.961509    
+GenderMale:POB_SouthSouth               -5073.9     1704.7  -2.976 0.002929 ** 
+GenderMale:UrbanUrban                   -1159.1     2011.4  -0.576 0.564485    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 30870 on 5577 degrees of freedom
+Multiple R-squared:  0.2344,	Adjusted R-squared:  0.2297 
+F-statistic: 50.22 on 34 and 5577 DF,  p-value: < 2.2e-16
+
+
+   

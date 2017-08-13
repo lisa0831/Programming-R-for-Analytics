@@ -1,0 +1,75 @@
+
+
+Reference
+Number     Year    Variable Description                                                        Question Name          
+------------------------------------------------------------------------------------------------------------------------
+A00025.00  2012    VERSION_R25_3                                                               VERSION_R25            
+R00001.00  1979    IDENTIFICATION CODE                                                         CASEID                 
+R00007.00  1979    COUNTRY OF BIRTH                                                            FAM-2A                 
+R00010.10  1979    SOUTH-NONSOUTH PLACE OF BIRTH IN U.S.                                       FAM-POB                
+R00011.00  1979    WAS FOREIGN LANGUAGE SPOKEN AT HOME DURING R'S CHILDHOOD?                   FAM-3                  
+R00012.00  1979    FOREIGN LANGUAGE SPOKEN AT HOME DURING R'S CHILDHOOD?                       FAM-3A                 
+R00016.10  1979    SOUTH-NONSOUTH RESIDENCE IN U.S. AT AGE 14                                  FAM-RES                
+R00018.00  1979    AREA OF RESIDENCE AT AGE 14 URBAN/RURAL?                                    FAM-6                  
+R00029.00  1979    AT AGE 14, DID ANY HOUSEHOLD MEMBER HAVE A LIBRARY CARD?                    FAM-13C                
+R00103.00  1979    IN WHAT RELIGION WAS R RAISED? 79 INT (COLLAPSED OTHER-SPECIFY)             R_REL-1_COL            
+R00235.00  1979    HIGHEST GRADE COMPLETED R EXPECTS                                           SCHOOL-31              
+R00291.00  1979    HAS R EVER SERVED IN THE ARMED FORCES?                                      MIL-6                  
+R01538.00  1979    FAMILY ATTITUDES - WOMAN'S PLACE IS IN THE HOME?                            WOMENS-ROLES_000001    
+R01539.00  1979    FAMILY ATTITUDES - WIFE WITH FAMILY HAS NO TIME FOR OTHER EMPLOYMENT?       WOMENS-ROLES_000002    
+R01540.00  1979    FAMILY ATTITUDES - WORKING WIFE FEELS MORE USEFUL?                          WOMENS-ROLES_000003    
+R01541.00  1979    FAMILY ATTITUDES - EMPLOYMENT OF WIVES LEADS TO JUVENILE DELINQUENCY?       WOMENS-ROLES_000004    
+R01543.00  1979    FAMILY ATTITUDES - TRADITIONAL HUSBAND/WIFE ROLES BEST?                     WOMENS-ROLES_000006    
+R01544.00  1979    FAMILY ATTITUDES - MEN SHOULD SHARE HOUSEWORK?                              WOMENS-ROLES_000007    
+R01545.00  1979    FAMILY ATTITUDES - WOMEN ARE HAPPIER IN TRADITIONAL ROLES?                  WOMENS-ROLES_000008    
+R01701.00  1979    OCCUPATION ASPIRATION AT AGE 35, (CENSUS 3 DIGIT)                           EXP-OCC                
+R01718.00  1979    EDUCATIONAL EXPECTATIONS - IN SCHOOL OR NOT IN 5 YEARS                      EXP-9                  
+R02147.00  78SCRN  R'S RACIAL/ETHNIC COHORT FROM SCREENER                                      SAMPLE_RACE            
+R02148.00  1979    SEX OF R                                                                    SAMPLE_SEX             
+R02175.01  1979    MARITAL STATUS                                                              MARSTAT-KEY            
+R02175.02  1979    FAMILY SIZE                                                                 FAMSIZE                
+R02179.10  1979    FAMILY POVERTY STATUS IN 1978                                               POVSTATUS              
+R03067.00  1980    EVER "STOPPED" BY POLICE FOR OTHER THAN MINOR TRAFFIC OFFENSE?              POLICE-1               
+R03070.00  1980    AGE OF R 1ST TIME "STOPPED" BY POLICE                                       POLIC-1C               
+R03071.00  1980    EVER CHARGED WITH ILLEGAL ACTIVITY? 80 INT (EXC MINOR TRAFFIC OFFENSE)      POLICE-2               
+R10217.00  1983    ALCOHOL USE - AGE WHEN STARTED DRINKING                                     ALCH-2                 
+R13951.00  1984    DRUG USE - # OF TIMES USED MARIJUANA IN LIFETIME                            DS-8                   
+R13954.00  1984    DRUG USE - AGE WHEN 1ST USED MARIJUANA                                      DS-9                   
+R32794.01  1990    TOTAL INCOME FROM WAGES AND SALARY IN PAST CALENDAR YEAR (TRUNC) (REVISED)  Q13-5_TRUNC_REVISED    
+R34008.00  1990    FAMILY POVERTY STATUS IN 1989                                               POVSTATUS              
+R34015.01  1990    HIGHEST GRADE COMPLETED AS OF MAY 1 SURVEY YEAR (REVISED)                   HGCREV90               
+R34035.00  1990    NUMBER OF DIFFERENT JOBS EVER REPORTED AS OF INTERVIEW DATE                 JOBSNUM                
+R34077.00  1990    NUMBER OF BIO/STEP/ADPT CHILDREN IN HOUSEHOLD                               NUMCH90                
+R34078.00  1990    AGE OF YOUNGEST BIO/STEP/ADPT CHILD IN HOUSEHOLD                            AGEYCH90               
+R64308.00  1998    DRUG USE - # OF TIMES USED COCAINE IN LIFETIME                              DS-12                  
+R64309.00  1998    DRUG USE - AGE WHEN 1ST USED COCAINE                                        DS-13                  
+R65913.00  2000    TYPE OF BUSINESS OR INDUSTRY (CENSUS 3 DIGIT, 70 CODES) (ALL) JOB #01       INDALL-EMP.01          
+R65929.00  2000    OCCUPATION AT CURRENT JOB/MOST RECENT JOB (80 CENSUS 3 DIGIT) CPS ITEM      CPSOCC80.01            
+R67387.00  2000    RS SPOUSE'S OCCUPATION IN 1999?                                             OCCSP-55I_CODE         
+R67498.00  2000    HOURS PER WEEK WORKED DURING WEEKS WORKED BY SPOUSE/PARTNER IN 1999         Q2-15B                 
+R68396.00  2000    NUMBER OF BIOLOGICAL CHILDREN REPORTED                                      Q10-2                  
+R69097.01  2000    TOTAL INCOME FROM WAGES AND SALARY IN PAST CALENDAR YEAR (TRUNC) (REVISED)  Q13-5_TRUNC_REVISED    
+R70064.00  2000    FAMILY SIZE                                                                 FAMSIZE                
+R70065.00  2000    TOTAL NET FAMILY INCOME IN PAST CALENDAR YEAR *KEY* (TRUNCATED)             TNFI_TRUNC             
+R70066.00  2000    FAMILY POVERTY STATUS IN 1999                                               POVSTATUS              
+R70069.00  2000    MARITAL STATUS (COLLAPSED)                                                  MARSTAT-COL            
+R70070.00  2000    MARITAL STATUS                                                              MARSTAT-KEY            
+R99097.00  XRND    ABSOLUTE VALUE OF MONTHS BETWEEN 1ST MARRIAGE & 1ST BIRTH                   MO1M1B                 
+T21840.00  2008    POLITICAL PARTY AFFILIATION                                                 ATT-POL-78             
+T21843.00  2008    R FOLLOWS WHAT'S GOING ON IN POLITICS                                       ATT-POL-79             
+T32069.01  2012    DATE OF BIRTH OF PARTNER                                                    Q2-10B~Y               
+T33082.00  2012    TYPE OF BUSINESS OR INDUSTRY (CENSUS 3 DIGIT, 00 CODES) (ALL) JOB #01       INDALL-EMP.01          
+T33087.00  2012    OCCUPATION (CENSUS 3 DIGIT, 00 CODES) (ALL) JOB #01                         OCCALL-EMP.01          
+T34954.00  2012    RS SPOUSE'S OCCUPATION IN 2011? (2000 CENSUS 3 DIGIT)                       OCCSP-55I_CODE         
+T35065.00  2012    NUMBER OF WEEKS WORKED BY SPOUSE/PARTNER IN 2011                            Q2-15A                 
+T39764.00  2012    NUMBER OF DRINKS RESPONDENT HAS ON AVERAGE DAY                              Q12-6                  
+T39774.00  2012    TOTAL INCOME FROM WAGES AND SALARY IN PAST CALENDAR YEAR  (TRUNC)           Q13-5_TRUNC            
+T39775.00  2012    ESTIMATED INCOME FROM WAGES AND SALARY IN PAST CALENDAR YEAR (ORIG)         Q13-5_SR000001         
+T39776.00  2012    ESTIMATED INCOME FROM WAGES AND SALARY IN PAST CALENDAR YEAR (ORIG)         Q13-5_SR000002         
+T39876.00  2012    TOTAL INCOME OF SPOUSE FROM WAGES AND SALARY IN PAST CALENDAR YEAR (TRUNC)  Q13-18_TRUNC           
+T39878.00  2012    EST.  INCOME OF SPOUSE FROM WAGES AND SALARY IN PAST CALENDAR YEAR (TRUNC)  Q13-18_SR000001_TRUNC  
+T41122.00  2012    FAMILY SIZE                                                                 FAMSIZE                
+T41127.00  2012    REGION OF CURRENT RESIDENCE                                                 REGION                 
+T41130.00  2012    HIGHEST GRADE COMPLETED AS OF MAY 1 SURVEY YEAR                             HGC                    
+T41146.00  2012    IS R'S CURRENT RESIDENCE URBAN/RURAL?                                       URBAN-RURAL            
+T41149.00  2012    NUMBER OF DIFFERENT JOBS EVER REPORTED AS OF INTERVIEW DATE                 JOBSNUM                
